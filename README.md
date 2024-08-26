@@ -34,7 +34,7 @@ Before running the client, make sure you have a valid Sliver client configuratio
 Run the following command to start the client and interact with the Sliver server:
 
 ```bash
-./SliverMoveMoveClient --config /path/to/your/config/file
+./SliverMoveMoveClient --sliver-config /path/to/your/sliver.cfg --pam-logger /path/to/your/logger
 ```
 
 ### 5. Interaction

