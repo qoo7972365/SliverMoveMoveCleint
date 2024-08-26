@@ -2,7 +2,7 @@ module github.com/qoo7972365/SliverMoveMoveClient
 
 go 1.21.5
 
-require github.com/bishopfox/sliver v1.15.16
+require github.com/bishopfox/sliver v1.5.42
 
 require (
 	github.com/chzyer/readline v1.5.1 // indirect
