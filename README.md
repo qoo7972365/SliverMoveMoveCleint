@@ -44,8 +44,8 @@ After starting the client, you can choose the session to operate on and select t
 ## Module List
 
 - **Pam Logger**: Logs PAM authentication events to a specified location.
-- **Credential Search (Files)**: Searches for credentials in the file system.
-- **Credential Search (Memory)**: Searches for credentials in memory.
+- **Credential Search (Files)**: Searches for credentials in the file system.(Not Avaliable Under Working now )
+- **Credential Search (Memory)**: Searches for credentials in memory. (Not Avaliable Under Working now )
 
 ## Project Structure
 
