@@ -1,12 +1,7 @@
 # SliverMoveMoveClient
 
-SliverMoveMoveClient is a Go-based client tool designed to interact with the [Sliver C2](https://github.com/BishopFox/sliver) server. This tool implements several common lateral movement modules, allowing various operations on target hosts, such as log management and credential searching.
+SliverMoveMoveClient is a Go-based client tool designed to interact with the [Sliver C2](https://github.com/BishopFox/sliver) server. This tool implements several common lateral movement modules, allowing various operations on target hosts, such as steal passwords and credential searching.
 
-## Features
-
-- **Pam Logger Module**: Logs passwords from su, sudo, and ssh authentication and sends them to a specified location.
-- **Credential Search**: Searches for sensitive credentials in the file system and memory.
-- **File Management**: Supports uploading, downloading, modifying, and managing file permissions.
 
 ## Usage
 
@@ -27,8 +22,13 @@ go build -o SliverMoveMoveClient main.go
 
 ### 3. Configuration File
 
-Before running the client, make sure you have a valid Sliver client configuration and module logger in the project directory, such as `timmy_mac_35.236.161.97.cfg` and `logger`.
+- `timmy_mac.cfg` Sliver client connection configration file
+- `main.go` - The main entry point of the program, containing the implementation of all modules.
+- `go.mod` & `go.sum` - Go dependency management files.
+- `modified_file.conf` - temp file for modify PAM files.
+- `logger` - log ssh su sudo password and send in telegram (YOU NEED TO BUILD BY YOUR SELF)
 Reference: https://github.com/qoo7972365/pam_logger
+
 ### 4. Run the Client
 
 Run the following command to start the client and interact with the Sliver server:
@@ -43,23 +43,6 @@ After starting the client, you can choose the session to operate on and select t
 
 ## Module List
 - **Pam Logger**: Logs PAM authentication events to a specified location. 
+- **SSH known host Search in all user**: Searches for SSH hosts in all users. (Not Available Under Working now)
 - **Credential Search (Files)**: Searches for credentials in the file system. (Not Available Under Working now)
 - **Credential Search (Memory)**: Searches for credentials in memory. (Not Available Under Working now)
-- **SSH known host Search in all user**: Searches for SSH hosts in all users. (Not Available Under Working now)
-
-
-
-
-## Project Structure
-
-- `main.go` - The main entry point of the program, containing the implementation of all modules.
-- `go.mod` & `go.sum` - Go dependency management files.
-- `modified_file.conf` - Example configuration file showing how to modify PAM files.
-
-## Contribution Guidelines
-
-If you find any issues or have suggestions for improvements, feel free to submit an Issue or Pull Request. For more detailed contribution guidelines, refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file (if available).
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
