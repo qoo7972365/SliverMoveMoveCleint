@@ -42,10 +42,14 @@ Run the following command to start the client and interact with the Sliver serve
 After starting the client, you can choose the session to operate on and select the module to execute. The tool supports selecting sessions and modules using the keyboard.
 
 ## Module List
+- **Pam Logger**: Logs PAM authentication events to a specified location. 
+  Reference: https://github.com/qoo7972365/pam_logger
+- **Credential Search (Files)**: Searches for credentials in the file system. (Not Available Under Working now)
+- **Credential Search (Memory)**: Searches for credentials in memory. (Not Available Under Working now)
+- **SSH known host Search in all user**: Searches for SSH hosts in all users. (Not Available Under Working now)
 
-- **Pam Logger**: Logs PAM authentication events to a specified location.
-- **Credential Search (Files)**: Searches for credentials in the file system.(Not Avaliable Under Working now )
-- **Credential Search (Memory)**: Searches for credentials in memory. (Not Avaliable Under Working now )
+
+
 
 ## Project Structure
 
