@@ -27,8 +27,8 @@ go build -o SliverMoveMoveClient main.go
 
 ### 3. Configuration File
 
-Before running the client, make sure you have a valid Sliver client configuration file in the project directory, such as `timmy_mac_35.236.161.97.cfg`.
-
+Before running the client, make sure you have a valid Sliver client configuration and module logger in the project directory, such as `timmy_mac_35.236.161.97.cfg` and `logger`.
+Reference: https://github.com/qoo7972365/pam_logger
 ### 4. Run the Client
 
 Run the following command to start the client and interact with the Sliver server:
@@ -43,7 +43,6 @@ After starting the client, you can choose the session to operate on and select t
 
 ## Module List
 - **Pam Logger**: Logs PAM authentication events to a specified location. 
-  Reference: https://github.com/qoo7972365/pam_logger
 - **Credential Search (Files)**: Searches for credentials in the file system. (Not Available Under Working now)
 - **Credential Search (Memory)**: Searches for credentials in memory. (Not Available Under Working now)
 - **SSH known host Search in all user**: Searches for SSH hosts in all users. (Not Available Under Working now)
