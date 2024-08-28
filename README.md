@@ -34,7 +34,7 @@ Reference: https://github.com/qoo7972365/pam_logger
 Run the following command to start the client and interact with the Sliver server:
 
 ```bash
-./SliverMoveMoveClient --sliver-config /path/to/your/sliver.cfg --pam-logger /path/to/your/logger
+./SliverMoveMoveClient --sliver-config /path/to/your/sliver.cfg --pam-logger /path/to/your/logger --command-logger /path/to/your/logger
 ```
 
 ### 5. Interaction
