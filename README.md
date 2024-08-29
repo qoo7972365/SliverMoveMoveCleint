@@ -27,7 +27,7 @@ go build -o SliverMoveMoveClient main.go
 - `go.mod` & `go.sum` - Go dependency management files.
 - `modified_file.conf` - temp file for modify PAM files.
 - `logger` - log ssh su sudo password and send in telegram (YOU NEED TO BUILD BY YOUR SELF)
-Reference: https://github.com/qoo7972365/pam_logger
+
 
 ### 4. Run the Client
 
@@ -43,6 +43,11 @@ After starting the client, you can choose the session to operate on and select t
 
 ## Module List
 - **Pam Logger**: Logs PAM authentication events to a specified location. 
-- **SSH known host Search in all user**: Searches for SSH hosts in all users. (Not Available Under Working now)
+Reference: https://github.com/qoo7972365/pam_logger
+- **SSH known host Search in all user**: Searches for SSH hosts in all users. For the hash hosts
+Reference: https://github.com/chris408/known_hosts-hashcat
+- **LogAllCommand**: add history.sh to /etc/profile.d and log all command send to telegram 
+Reference: https://github.com/qoo7972365/log_all_bash
 - **Credential Search (Files)**: Searches for credentials in the file system. (Not Available Under Working now)
 - **Credential Search (Memory)**: Searches for credentials in memory. (Not Available Under Working now)
+
