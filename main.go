@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
-	"flag"
 	"fmt"
 	"log"
 	"os"
 	"strings"
 	"time"
+
+	"gopkg.in/ini.v1"
 
 	"github.com/bishopfox/sliver/client/assets"
 	"github.com/bishopfox/sliver/client/transport"
@@ -442,16 +443,16 @@ func main() {
 	// flag.StringVar(&configPath, "config", "/Users/timmy/Downloads/timmy_mac_35.236.161.97.cfg", "path to sliver client config file")
 	// flag.Parse()
 
+	cfg, err := ini.Load("config.ini")
+	if err != nil {
+	  log.Fatal("Fail to read file: ", err)
+	}
 
-	// 定义两个命令行参数
-	flag.StringVar(&sliverConfigPath, "sliver-config", "/Users/timmy/Downloads/timmy_mac_35.236.161.97.cfg", "path to sliver client config file")
-	flag.StringVar(&pamLoggerPath, "pam-logger", "/Users/timmy/Downloads/loogger", "path to PAM logger binary file")
-	flag.StringVar(&commandLoggerPath, "command-logger", "/Users/timmy/Downloads/history_log", "path to command logger binary file")
-	flag.StringVar(&commandHistoryPath, "command-history", "/Users/timmy/Downloads/history.sh", "path to history shell script file")
-
-	// 解析命令行参数
-	flag.Parse()
-
+	// 从配置文件中获取参数
+	sliverConfigPath = cfg.Section("Sliver-Server").Key("sliver-cfg").String()
+	pamLoggerPath = cfg.Section("PAM-Logger").Key("pam-logger").String()
+	commandLoggerPath = cfg.Section("CommandLogger").Key("command-logger").String()
+	commandHistoryPath = cfg.Section("CommandLogger").Key("command-history").String()
 
 
 	config, err := assets.ReadConfig(sliverConfigPath)
@@ -473,7 +474,7 @@ func main() {
 	}
 
 	if len(sessions.Sessions) == 0 {
-		fmt.Println("Can not find sessions in sliver")
+		log.Println("Oops did not find any active sessions in sliver")
 		os.Exit(0)
 	}
 	log.Printf("[*] Sessions Lists:\n")
